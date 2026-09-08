@@ -18,6 +18,9 @@
     .ctrl-group label { display: block; font-weight: 600; font-size: 0.85rem; color: #b8d0e8; margin-bottom: 5px; }
     .ctrl-group input, .ctrl-group select { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid #2e4a6a; background: #0b1a2a; color: #fff; font-size: 0.9rem; font-family: 'Cairo', sans-serif; transition: 0.2s; outline: none; }
     .ctrl-group input:focus { border-color: #00FF00; box-shadow: 0 0 0 3px rgba(0,255,0,0.15); }
+    .ctrl-group input[type="range"] { padding: 0; height: 6px; background: #1a2f3f; border-radius: 4px; -webkit-appearance: none; }
+    .ctrl-group input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #00FF00; cursor: pointer; }
+    .ctrl-group input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #00FF00; cursor: pointer; border: none; }
     .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
     .btn-group button { flex: 1; min-width: 85px; padding: 13px 18px; border: none; border-radius: 40px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.25s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Cairo', sans-serif; }
     .btn-record { background: #00FF00; color: #021533; }
@@ -40,6 +43,7 @@
     .video-controls input[type="range"] { flex: 1; min-width: 100px; accent-color: #00FF00; }
     .time { color: #b8d0e8; font-size: 0.9rem; min-width: 90px; text-align: center; }
     .hint { color: #7a9bbf; font-size: 0.8rem; margin-top: 10px; }
+    .range-value { color: #00FF00; font-weight: bold; margin-right: 6px; }
     @media (max-width: 850px) { .container { flex-direction: column; } .controls { max-height: none; } }
   </style>
 </head>
@@ -59,6 +63,14 @@
       <div class="ctrl-group">
         <label>📝 نص الخبر (يظهر أسفل الفيديو)</label>
         <input type="text" id="newsTextInput" value="جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية" maxlength="150">
+      </div>
+      <div class="ctrl-group">
+        <label>🔍 حجم اسم الصفحة (أعلى) <span class="range-value" id="pageSizeValue">22</span></label>
+        <input type="range" id="pageSizeSlider" min="10" max="50" value="22" step="1">
+      </div>
+      <div class="ctrl-group">
+        <label>🔍 حجم نص الخبر (أسفل) <span class="range-value" id="newsSizeValue">22</span></label>
+        <input type="range" id="newsSizeSlider" min="10" max="50" value="22" step="1">
       </div>
       <div class="ctrl-group">
         <label>🎨 لون النقش الفسفوري</label>
@@ -90,14 +102,14 @@
         <button id="btnMute"><i class="fas fa-volume-up"></i></button>
         <button id="btnFullscreen" title="معاينة كاملة"><i class="fas fa-expand"></i></button>
       </div>
-      <div class="hint"><i class="fas fa-info-circle"></i> نص مصغر جداً ليتناسب مع جميع الشاشات.</div>
+      <div class="hint"><i class="fas fa-info-circle"></i> استخدم أشرطة التحكم لتكبير/تصغير النصوص.</div>
     </div>
   </div>
 </div>
 
 <script>
 // ============================================================
-//  نظام تسجيل متطور – مع نص مصغر جداً (بدون خطوط زخرفية)
+//  نظام تسجيل متطور – مع تحكم بحجم النصوص (Zoom)
 // ============================================================
 
 const { FFmpeg } = FFmpegWASM;
@@ -171,6 +183,10 @@ video.preload = 'auto';
 const videoUpload = document.getElementById('videoUpload');
 const pageNameInput = document.getElementById('pageNameInput');
 const newsTextInput = document.getElementById('newsTextInput');
+const pageSizeSlider = document.getElementById('pageSizeSlider');
+const newsSizeSlider = document.getElementById('newsSizeSlider');
+const pageSizeValue = document.getElementById('pageSizeValue');
+const newsSizeValue = document.getElementById('newsSizeValue');
 const goldColorInp = document.getElementById('goldColor');
 const qualitySelect = document.getElementById('qualitySelect');
 const btnRecord = document.getElementById('btnRecord');
@@ -190,9 +206,15 @@ let animFrame = null;
 let canvasStream = null;
 let audioContext = null, audioDestination = null, audioSource = null;
 
-// حجم النص المصغر جداً
-const FONT_SIZE = 22; // صغير جداً
-const FONT_SIZE_NEWS = 22; // نفس الحجم للخبر
+// ----- تحديث قيم الشرائح -----
+pageSizeSlider.addEventListener('input', () => {
+  pageSizeValue.textContent = pageSizeSlider.value;
+  if (!isPlaying && !isRecording) drawFrame();
+});
+newsSizeSlider.addEventListener('input', () => {
+  newsSizeValue.textContent = newsSizeSlider.value;
+  if (!isPlaying && !isRecording) drawFrame();
+});
 
 // ----- دالة تقسيم النص إلى سطرين حسب العرض -----
 function splitTextIntoLines(text, maxWidth, fontSize, fontFamily) {
@@ -213,7 +235,6 @@ function splitTextIntoLines(text, maxWidth, fontSize, fontFamily) {
     }
   }
   lines.push(currentLine);
-  // إذا كان هناك أكثر من سطرين، ندمج الزائد في السطر الثاني
   if (lines.length > 2) {
     const allWords = text.split(' ');
     const mid = Math.floor(allWords.length / 2);
@@ -286,10 +307,10 @@ function drawFrame() {
 
   const gold = goldColorInp.value || '#00FF00';
 
-  // ----- اسم الصفحة في الأعلى (مصغر جداً) مع خط زخرفي (نحتفظ به) -----
+  // ----- اسم الصفحة في الأعلى مع حجم متغير -----
   const pageName = pageNameInput.value.trim() || 'منصة أغورط الإخبارية';
   const fullText = '👤 ' + pageName;
-  const fontSize = FONT_SIZE;
+  const fontSize = parseInt(pageSizeSlider.value, 10);
   const fontFamily = 'Cairo';
 
   ctx.save();
@@ -305,7 +326,7 @@ function drawFrame() {
   ctx.lineWidth = 1.5;
   ctx.strokeText(fullText, W / 2, 10);
 
-  // خط زخرفي صغير تحت الاسم (نحتفظ به)
+  // خط زخرفي صغير تحت الاسم
   const metrics = ctx.measureText(fullText);
   const textWidth = metrics.width;
   const xStart = (W - textWidth) / 2;
@@ -326,10 +347,10 @@ function drawFrame() {
   ctx.fill();
   ctx.restore();
 
-  // ----- نص الخبر في الأسفل (مصغر جداً، بدون خطوط زخرفية) -----
+  // ----- نص الخبر في الأسفل مع حجم متغير -----
   const newsText = newsTextInput.value.trim() || 'جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية';
   if (newsText) {
-    const fontSizeNews = FONT_SIZE_NEWS;
+    const fontSizeNews = parseInt(newsSizeSlider.value, 10);
     const maxWidth = W - 30;
     ctx.save();
     ctx.font = `bold ${fontSizeNews}px "${fontFamily}","Tahoma",sans-serif`;
@@ -341,7 +362,7 @@ function drawFrame() {
     const bottomY = H - 12;
     const startY = bottomY - totalHeight;
 
-    // رسم النص فقط بدون أي خطوط
+    // رسم النص فقط بدون أي خطوط زخرفية
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (!line) continue;
@@ -578,6 +599,7 @@ function stopRecording(silent = false) {
 btnRecord.onclick = startRecording;
 btnStop.onclick = () => stopRecording();
 
+// تحديث الرسم عند تغيير النصوص أو اللون أو حجم النصوص
 pageNameInput.addEventListener('input', () => { if (!isPlaying && !isRecording) drawFrame(); });
 newsTextInput.addEventListener('input', () => { if (!isPlaying && !isRecording) drawFrame(); });
 goldColorInp.addEventListener('input', () => { if (!isPlaying && !isRecording) drawFrame(); });
