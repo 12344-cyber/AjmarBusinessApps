@@ -97,7 +97,7 @@
 
 <script>
 // ============================================================
-//  نظام تسجيل متطور – مع نص مصغر جداً
+//  نظام تسجيل متطور – مع نص مصغر جداً (بدون خطوط زخرفية)
 // ============================================================
 
 const { FFmpeg } = FFmpegWASM;
@@ -286,7 +286,7 @@ function drawFrame() {
 
   const gold = goldColorInp.value || '#00FF00';
 
-  // ----- اسم الصفحة في الأعلى (مصغر جداً) -----
+  // ----- اسم الصفحة في الأعلى (مصغر جداً) مع خط زخرفي (نحتفظ به) -----
   const pageName = pageNameInput.value.trim() || 'منصة أغورط الإخبارية';
   const fullText = '👤 ' + pageName;
   const fontSize = FONT_SIZE;
@@ -305,7 +305,7 @@ function drawFrame() {
   ctx.lineWidth = 1.5;
   ctx.strokeText(fullText, W / 2, 10);
 
-  // خط زخرفي صغير تحت الاسم
+  // خط زخرفي صغير تحت الاسم (نحتفظ به)
   const metrics = ctx.measureText(fullText);
   const textWidth = metrics.width;
   const xStart = (W - textWidth) / 2;
@@ -326,7 +326,7 @@ function drawFrame() {
   ctx.fill();
   ctx.restore();
 
-  // ----- نص الخبر في الأسفل (مصغر جداً) -----
+  // ----- نص الخبر في الأسفل (مصغر جداً، بدون خطوط زخرفية) -----
   const newsText = newsTextInput.value.trim() || 'جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية';
   if (newsText) {
     const fontSizeNews = FONT_SIZE_NEWS;
@@ -341,6 +341,7 @@ function drawFrame() {
     const bottomY = H - 12;
     const startY = bottomY - totalHeight;
 
+    // رسم النص فقط بدون أي خطوط
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (!line) continue;
@@ -355,29 +356,6 @@ function drawFrame() {
       ctx.strokeStyle = gold;
       ctx.lineWidth = 1.5;
       ctx.strokeText(line, W / 2, yPos);
-    }
-
-    // خط زخرفي فوق السطر الأول
-    const firstLine = lines[0];
-    if (firstLine) {
-      ctx.font = `bold ${fontSizeNews}px "${fontFamily}","Tahoma",sans-serif`;
-      const lineWidth = ctx.measureText(firstLine).width;
-      const xStartNews = (W - lineWidth) / 2;
-      const yLineNews = startY + fontSizeNews * 0.2;
-      ctx.beginPath();
-      ctx.moveTo(xStartNews, yLineNews);
-      ctx.lineTo(xStartNews + lineWidth, yLineNews);
-      ctx.strokeStyle = gold;
-      ctx.lineWidth = 2;
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = gold + '50';
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(xStartNews + lineWidth, yLineNews, 4, 0, Math.PI * 2);
-      ctx.fillStyle = gold;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = gold + '70';
-      ctx.fill();
     }
     ctx.restore();
   }
