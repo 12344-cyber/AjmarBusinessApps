@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تحرير الفيديو – منصة أغورط (نسخة محسنة)</title>
+  <title>تحرير الفيديو – منصة أغورط</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
@@ -64,7 +64,6 @@
         <label>🎨 لون النقش الفسفوري</label>
         <input type="color" id="goldColor" value="#00FF00">
       </div>
-      <!-- شريط تحكم بجودة التسجيل (اختياري) -->
       <div class="ctrl-group">
         <label>⚙️ جودة التسجيل</label>
         <select id="qualitySelect">
@@ -91,15 +90,14 @@
         <button id="btnMute"><i class="fas fa-volume-up"></i></button>
         <button id="btnFullscreen" title="معاينة كاملة"><i class="fas fa-expand"></i></button>
       </div>
-      <div class="hint"><i class="fas fa-info-circle"></i> جودة عالية – تم تحسين كل من الصوت والفيديو لتجنب التشويش والتقطيع.</div>
+      <div class="hint"><i class="fas fa-info-circle"></i> نص مصغر جداً ليتناسب مع جميع الشاشات.</div>
     </div>
   </div>
 </div>
 
 <script>
 // ============================================================
-//  نظام تسجيل متطور – بدون تشويش (نسخة محسنة)
-//  مع إضافة نص الخبر في أسفل الفيديو بنفس حجم اسم الصفحة
+//  نظام تسجيل متطور – مع نص مصغر جداً
 // ============================================================
 
 const { FFmpeg } = FFmpegWASM;
@@ -137,26 +135,24 @@ window.addEventListener('load', () => {
   setTimeout(() => prepareFFmpeg().catch(() => {}), 500);
 });
 
-// تحويل WebM إلى MP4 مع إعدادات محسنة (جودة عالية)
 async function convertWebMToMP4(webmBlob) {
   const ffmpeg = await prepareFFmpeg();
   const inputBytes = new Uint8Array(await webmBlob.arrayBuffer());
   await ffmpeg.writeFile('input.webm', inputBytes);
   await ffmpeg.exec([
     '-i', 'input.webm',
-    // حذف -r و -vsync و -async لتجنب مشاكل التزامن
     '-c:v', 'libx264',
     '-profile:v', 'high',
     '-level', '4.0',
     '-pix_fmt', 'yuv420p',
     '-movflags', '+faststart',
-    '-preset', 'slow',        // تحسين الجودة على حساب السرعة (يمكن تغييره إلى medium)
-    '-crf', '17',             // جودة أعلى (أقل قيمة = جودة أعلى)
-    '-b:v', '4M',             // معدل بت أعلى
+    '-preset', 'slow',
+    '-crf', '17',
+    '-b:v', '4M',
     '-maxrate', '8M',
     '-bufsize', '16M',
     '-c:a', 'aac',
-    '-b:a', '192k',           // زيادة جودة الصوت
+    '-b:a', '192k',
     '-ac', '2',
     'output.mp4'
   ]);
@@ -192,17 +188,18 @@ let videoLoaded = false, isPlaying = false, isRecording = false;
 let mediaRecorder = null, recordedChunks = [];
 let animFrame = null;
 let canvasStream = null;
-let audioContext = null;        // سيتم استخدامه لالتقاط الصوت بشكل مستقر
-let audioDestination = null;
-let audioSource = null;
+let audioContext = null, audioDestination = null, audioSource = null;
 
-// ----- دالة مساعدة لتقسيم النص إلى سطرين حسب العرض -----
+// حجم النص المصغر جداً
+const FONT_SIZE = 22; // صغير جداً
+const FONT_SIZE_NEWS = 22; // نفس الحجم للخبر
+
+// ----- دالة تقسيم النص إلى سطرين حسب العرض -----
 function splitTextIntoLines(text, maxWidth, fontSize, fontFamily) {
   if (!text) return [];
   ctx.font = `bold ${fontSize}px "${fontFamily}","Tahoma",sans-serif`;
   const words = text.split(' ');
   if (words.length === 0) return [];
-  // نبدأ بسطر واحد
   let lines = [];
   let currentLine = words[0];
   for (let i = 1; i < words.length; i++) {
@@ -216,21 +213,13 @@ function splitTextIntoLines(text, maxWidth, fontSize, fontFamily) {
     }
   }
   lines.push(currentLine);
-  // إذا كان هناك أكثر من سطرين، ندمج الزائد في السطر الثاني (نأخذ نصف الكلمات أو نضغط)
+  // إذا كان هناك أكثر من سطرين، ندمج الزائد في السطر الثاني
   if (lines.length > 2) {
-    // ندمج كل الكلمات في سطرين فقط: السطر الأول يأخذ نصف الكلمات، والثاني الباقي
     const allWords = text.split(' ');
     const mid = Math.floor(allWords.length / 2);
-    // نجعل السطر الأول من البداية إلى المنتصف، والثاني من المنتصف إلى النهاية
     const line1 = allWords.slice(0, mid).join(' ');
     const line2 = allWords.slice(mid).join(' ');
-    // إذا كان السطر الثاني فارغاً، نجعله سطراً واحداً
-    if (line2.trim() === '') {
-      return [line1];
-    }
-    // نتحقق من عرض السطرين ونعدل إذا تجاوزا العرض
-    // يمكننا تقليل حجم الخط، لكن المستخدم يريد حجم ثابت، لذا نضغط الكلمات في سطرين
-    // نعيد بناء السطرين بحيث لا يتجاوز كل منهما العرض
+    if (line2.trim() === '') return [line1];
     let finalLines = [];
     let tempLine = '';
     for (let i = 0; i < allWords.length; i++) {
@@ -240,7 +229,6 @@ function splitTextIntoLines(text, maxWidth, fontSize, fontFamily) {
           finalLines.push(tempLine);
           tempLine = allWords[i];
         } else {
-          // إذا وصلنا للسطر الثالث، نضيف الكلمة للسطر الثاني حتى لو تجاوز
           finalLines[1] += ' ' + allWords[i];
         }
       } else {
@@ -251,9 +239,7 @@ function splitTextIntoLines(text, maxWidth, fontSize, fontFamily) {
       if (finalLines.length < 2) finalLines.push(tempLine);
       else finalLines[1] += ' ' + tempLine;
     }
-    // إذا كان هناك سطران فقط نرجعها، وإلا نأخذ أول سطرين فقط
     if (finalLines.length > 2) {
-      // ندمج الزائد في السطر الثاني
       for (let i = 2; i < finalLines.length; i++) {
         finalLines[1] += ' ' + finalLines[i];
       }
@@ -264,7 +250,7 @@ function splitTextIntoLines(text, maxWidth, fontSize, fontFamily) {
   return lines;
 }
 
-// ----- دالة الرسم (تم إضافة نص الخبر في الأسفل بحجم ثابت) -----
+// ----- دالة الرسم -----
 function drawFrame() {
   const W = canvas.width, H = canvas.height;
   if (W === 0 || H === 0) return;
@@ -300,110 +286,103 @@ function drawFrame() {
 
   const gold = goldColorInp.value || '#00FF00';
 
-  // ----- اسم الصفحة في الأعلى (كما هو) -----
+  // ----- اسم الصفحة في الأعلى (مصغر جداً) -----
   const pageName = pageNameInput.value.trim() || 'منصة أغورط الإخبارية';
   const fullText = '👤 ' + pageName;
+  const fontSize = FONT_SIZE;
+  const fontFamily = 'Cairo';
 
   ctx.save();
-  ctx.shadowBlur = 16;
-  ctx.shadowColor = gold + '90';
-  ctx.font = `bold 44px "Cairo","Tahoma",sans-serif`;
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = gold + '80';
+  ctx.font = `bold ${fontSize}px "${fontFamily}","Tahoma",sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.fillStyle = gold;
-  ctx.fillText(fullText, W / 2, 22);
+  ctx.fillText(fullText, W / 2, 10);
   ctx.shadowBlur = 0;
   ctx.strokeStyle = gold;
-  ctx.lineWidth = 2;
-  ctx.strokeText(fullText, W / 2, 22);
+  ctx.lineWidth = 1.5;
+  ctx.strokeText(fullText, W / 2, 10);
 
-  // خط زخرفي تحت الاسم
+  // خط زخرفي صغير تحت الاسم
   const metrics = ctx.measureText(fullText);
   const textWidth = metrics.width;
   const xStart = (W - textWidth) / 2;
-  const yLine = 22 + 44 + 6;
+  const yLine = 10 + fontSize + 4;
   ctx.beginPath();
   ctx.moveTo(xStart, yLine);
   ctx.lineTo(xStart + textWidth, yLine);
   ctx.strokeStyle = gold;
-  ctx.lineWidth = 3;
-  ctx.shadowBlur = 8;
-  ctx.shadowColor = gold + '60';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = gold + '50';
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(xStart + textWidth, yLine, 5, 0, Math.PI * 2);
+  ctx.arc(xStart + textWidth, yLine, 4, 0, Math.PI * 2);
   ctx.fillStyle = gold;
-  ctx.shadowBlur = 10;
-  ctx.shadowColor = gold + '80';
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = gold + '70';
   ctx.fill();
   ctx.restore();
 
-  // ----- نص الخبر في الأسفل (بحجم ثابت 44px، مقسم إلى سطرين) -----
+  // ----- نص الخبر في الأسفل (مصغر جداً) -----
   const newsText = newsTextInput.value.trim() || 'جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة';
   if (newsText) {
-    const fontSize = 44; // نفس حجم اسم الصفحة
-    const maxWidth = W - 40; // هامش 20 بكسل من كل جانب
-    const fontFamily = 'Cairo';
+    const fontSizeNews = FONT_SIZE_NEWS;
+    const maxWidth = W - 30;
     ctx.save();
-    ctx.font = `bold ${fontSize}px "${fontFamily}","Tahoma",sans-serif`;
-    // تقسيم النص إلى سطرين
-    let lines = splitTextIntoLines(newsText, maxWidth, fontSize, fontFamily);
-    // إذا كان هناك سطر واحد فقط، نجعله في المنتصف
-    if (lines.length === 1) {
-      // نضيف سطراً فارغاً للتوازن
-      lines = [lines[0], ''];
-    }
-    // حساب ارتفاع النص الكلي
-    const lineHeight = fontSize * 1.3;
+    ctx.font = `bold ${fontSizeNews}px "${fontFamily}","Tahoma",sans-serif`;
+    let lines = splitTextIntoLines(newsText, maxWidth, fontSizeNews, fontFamily);
+    if (lines.length === 1) lines = [lines[0], ''];
+
+    const lineHeight = fontSizeNews * 1.3;
     const totalHeight = lines.length * lineHeight;
-    // نرسم من الأسفل مع مسافة 30 بكسل
-    const bottomY = H - 30;
+    const bottomY = H - 12;
     const startY = bottomY - totalHeight;
 
-    // رسم كل سطر
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (!line) continue;
-      const yPos = startY + i * lineHeight + fontSize; // baseline من الأسفل
-      ctx.shadowBlur = 16;
-      ctx.shadowColor = gold + '90';
+      const yPos = startY + i * lineHeight + fontSizeNews;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = gold + '80';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       ctx.fillStyle = gold;
       ctx.fillText(line, W / 2, yPos);
       ctx.shadowBlur = 0;
       ctx.strokeStyle = gold;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.5;
       ctx.strokeText(line, W / 2, yPos);
     }
 
-    // خط زخرفي فوق السطر الأول (فوق النص)
+    // خط زخرفي فوق السطر الأول
     const firstLine = lines[0];
     if (firstLine) {
-      ctx.font = `bold ${fontSize}px "${fontFamily}","Tahoma",sans-serif`;
+      ctx.font = `bold ${fontSizeNews}px "${fontFamily}","Tahoma",sans-serif`;
       const lineWidth = ctx.measureText(firstLine).width;
       const xStartNews = (W - lineWidth) / 2;
-      const yLineNews = startY + fontSize * 0.2; // فوق النص بقليل
+      const yLineNews = startY + fontSizeNews * 0.2;
       ctx.beginPath();
       ctx.moveTo(xStartNews, yLineNews);
       ctx.lineTo(xStartNews + lineWidth, yLineNews);
       ctx.strokeStyle = gold;
-      ctx.lineWidth = 3;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = gold + '60';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = gold + '50';
       ctx.stroke();
-      // نقطة في نهاية الخط
       ctx.beginPath();
-      ctx.arc(xStartNews + lineWidth, yLineNews, 5, 0, Math.PI * 2);
+      ctx.arc(xStartNews + lineWidth, yLineNews, 4, 0, Math.PI * 2);
       ctx.fillStyle = gold;
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = gold + '80';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = gold + '70';
       ctx.fill();
     }
     ctx.restore();
   }
 
-  // تحديث شريط التقدم (خارج الكانفاس)
+  // تحديث شريط التقدم
   if (videoLoaded && video.duration) {
     const pct = (video.currentTime / video.duration) * 100;
     if (!isNaN(pct) && document.activeElement !== progressBar) progressBar.value = pct;
@@ -495,26 +474,18 @@ videoUpload.onchange = e => {
   };
 };
 
-// ----- وظيفة محسنة للحصول على الصوت باستخدام AudioContext (أكثر استقراراً) -----
 function setupAudioContext() {
   if (audioContext) return audioContext;
   try {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    // إنشاء وجهة للتيار الصوتي
     audioDestination = audioContext.createMediaStreamDestination();
-    // ربط مصدر الفيديو بالسياق
     audioSource = audioContext.createMediaElementSource(video);
     audioSource.connect(audioDestination);
-    // لا نربط بمخارج السماعات لتجنب الصدى، لكن يمكن تركه
     audioSource.connect(audioContext.destination);
     return audioContext;
-  } catch (e) {
-    console.error('فشل إنشاء AudioContext للصوت:', e);
-    return null;
-  }
+  } catch (e) { return null; }
 }
 
-// ----- إعداد المسجل مع عزل الصوت (محسّن) -----
 function setupRecorder() {
   if (!videoLoaded) {
     statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ارفع فيديو أولاً';
@@ -528,67 +499,41 @@ function setupRecorder() {
     return null;
   }
 
-  // تدفق الفيديو من canvas (معدل 30 إطار)
   canvasStream = canvas.captureStream(30);
-
-  // الحصول على تدفق الصوت النظيف عبر AudioContext (طريقة أكثر استقراراً)
   let audioStream = null;
   const ctx = setupAudioContext();
   if (ctx && audioDestination) {
     audioStream = audioDestination.stream;
-    // إذا كان السياق معلقاً، نشغله
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(e => console.warn('تعذر استئناف AudioContext', e));
-    }
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   } else {
-    // fallback إلى captureStream المباشر
     try {
       const fallback = video.captureStream();
       const audioTracks = fallback.getAudioTracks();
-      if (audioTracks.length > 0) {
-        audioStream = new MediaStream(audioTracks);
-      }
+      if (audioTracks.length) audioStream = new MediaStream(audioTracks);
     } catch (e) {}
   }
-
-  // إذا لم نجد صوت، نستمر بدون صوت
   if (!audioStream || audioStream.getAudioTracks().length === 0) {
-    console.warn('لا يوجد صوت متاح، التسجيل بدون صوت');
+    console.warn('لا يوجد صوت، التسجيل بدون صوت');
     audioStream = null;
   }
-
-  // دمج الفيديو والصوت
   const tracks = canvasStream.getVideoTracks();
-  if (audioStream) {
-    tracks.push(...audioStream.getAudioTracks());
-  }
+  if (audioStream) tracks.push(...audioStream.getAudioTracks());
   const combinedStream = new MediaStream(tracks);
 
-  // اختيار التنسيق مع جودة عالية
   let mimeType = 'video/webm';
-  if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-    mimeType = 'video/webm;codecs=vp9';
-  } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-    mimeType = 'video/webm;codecs=vp8';
-  }
+  if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) mimeType = 'video/webm;codecs=vp9';
+  else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) mimeType = 'video/webm;codecs=vp8';
 
-  // تحديد معدل البت حسب اختيار المستخدم
-  let bitrate = 8000000; // افتراضي عالي
-  const quality = qualitySelect.value;
-  if (quality === 'medium') bitrate = 5000000;
-  else if (quality === 'low') bitrate = 3000000;
+  let bitrate = 8000000;
+  const q = qualitySelect.value;
+  if (q === 'medium') bitrate = 5000000;
+  else if (q === 'low') bitrate = 3000000;
 
   mediaRecorder = new MediaRecorder(combinedStream, {
-    mimeType: mimeType,
-    videoBitsPerSecond: bitrate,
-    audioBitsPerSecond: 256000
+    mimeType, videoBitsPerSecond: bitrate, audioBitsPerSecond: 256000
   });
-
   recordedChunks = [];
-  mediaRecorder.ondataavailable = e => {
-    if (e.data.size) recordedChunks.push(e.data);
-  };
-
+  mediaRecorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
   mediaRecorder.onstop = async () => {
     const webmBlob = new Blob(recordedChunks, { type: 'video/webm' });
     statusBadge.innerHTML = '<i class="fas fa-cog fa-spin"></i> جاري تحويل إلى MP4...';
@@ -619,7 +564,6 @@ function setupRecorder() {
       statusBadge.className = 'status';
     }
   };
-
   return mediaRecorder;
 }
 
@@ -628,30 +572,21 @@ function startRecording() {
   if (!rec) return;
   video.currentTime = 0;
   video.muted = false;
-  rec.start(1000); // جمع البيانات كل ثانية لتقليل الذاكرة
+  rec.start(1000);
   isRecording = true;
   btnRecord.disabled = true;
   btnStop.disabled = false;
   btnDownload.disabled = true;
   statusBadge.innerHTML = '<i class="fas fa-circle"></i> جاري التسجيل...';
   statusBadge.className = 'status recording';
-
   if (!isPlaying) {
-    video.play().then(() => {
-      isPlaying = true;
-      btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
-      startLoop();
-    }).catch(() => {});
-  } else {
-    startLoop();
-  }
+    video.play().then(() => { isPlaying = true; btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>'; startLoop(); }).catch(() => {});
+  } else { startLoop(); }
 }
 
 function stopRecording(silent = false) {
   if (!isRecording) return;
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-  }
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
   isRecording = false;
   btnRecord.disabled = false;
   btnStop.disabled = true;
@@ -659,34 +594,20 @@ function stopRecording(silent = false) {
     statusBadge.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> معالجة...';
     statusBadge.className = 'status';
   }
-  // إيقاف تشغيل الفيديو تلقائياً إذا لم يكن قيد التشغيل
   if (isPlaying) pause();
 }
 
 btnRecord.onclick = startRecording;
 btnStop.onclick = () => stopRecording();
 
-// تحديث الرسم عند تغيير النصوص أو اللون
-pageNameInput.addEventListener('input', () => {
-  if (!isPlaying && !isRecording) drawFrame();
-});
-newsTextInput.addEventListener('input', () => {
-  if (!isPlaying && !isRecording) drawFrame();
-});
-goldColorInp.addEventListener('input', () => {
-  if (!isPlaying && !isRecording) drawFrame();
-});
+pageNameInput.addEventListener('input', () => { if (!isPlaying && !isRecording) drawFrame(); });
+newsTextInput.addEventListener('input', () => { if (!isPlaying && !isRecording) drawFrame(); });
+goldColorInp.addEventListener('input', () => { if (!isPlaying && !isRecording) drawFrame(); });
 
-// ----- التهيئة -----
-canvas.width = 715;
-canvas.height = 408;
-drawFrame();
+canvas.width = 715; canvas.height = 408; drawFrame();
 
-// تحرير AudioContext عند بدء التشغيل (لتفادي قيود المتصفح)
 document.addEventListener('click', () => {
-  if (audioContext && audioContext.state === 'suspended') {
-    audioContext.resume().catch(e => console.warn('تعذر استئناف السياق الصوتي', e));
-  }
+  if (audioContext && audioContext.state === 'suspended') audioContext.resume().catch(() => {});
 }, { once: true });
 
 </script>
