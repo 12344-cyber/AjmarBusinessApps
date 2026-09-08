@@ -58,7 +58,7 @@
       </div>
       <div class="ctrl-group">
         <label>📝 نص الخبر (يظهر أسفل الفيديو)</label>
-        <input type="text" id="newsTextInput" value="جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة" maxlength="100">
+        <input type="text" id="newsTextInput" value="جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة" maxlength="150">
       </div>
       <div class="ctrl-group">
         <label>🎨 لون النقش الفسفوري</label>
@@ -99,7 +99,7 @@
 <script>
 // ============================================================
 //  نظام تسجيل متطور – بدون تشويش (نسخة محسنة)
-//  مع إضافة نص الخبر في أسفل الفيديو بنفس تصميم الاسم
+//  مع إضافة نص الخبر في أسفل الفيديو بحجم مناسب
 // ============================================================
 
 const { FFmpeg } = FFmpegWASM;
@@ -196,7 +196,7 @@ let audioContext = null;        // سيتم استخدامه لالتقاط ال
 let audioDestination = null;
 let audioSource = null;
 
-// ----- دالة الرسم (تم إضافة نص الخبر في الأسفل) -----
+// ----- دالة الرسم (تم إضافة نص الخبر في الأسفل بحجم متكيف) -----
 function drawFrame() {
   const W = canvas.width, H = canvas.height;
   if (W === 0 || H === 0) return;
@@ -270,30 +270,37 @@ function drawFrame() {
   ctx.fill();
   ctx.restore();
 
-  // ----- نص الخبر في الأسفل (نفس التصميم) -----
+  // ----- نص الخبر في الأسفل (بحجم متكيف) -----
   const newsText = newsTextInput.value.trim() || 'جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة';
   if (newsText) {
-    // نحتاج لقياس النص لرسم الخط والنقطة
+    // تعيين الحد الأقصى للعرض المسموح به (عرض الكانفاس ناقص 40 بكسل)
+    const maxWidth = W - 40;
+    // نبدأ بحجم خط كبير ونقلل حتى يتناسب
+    let fontSize = 44; // حجم ابتدائي
     ctx.save();
+    ctx.font = `bold ${fontSize}px "Cairo","Tahoma",sans-serif`;
+    while (ctx.measureText(newsText).width > maxWidth && fontSize > 16) {
+      fontSize -= 2;
+      ctx.font = `bold ${fontSize}px "Cairo","Tahoma",sans-serif`;
+    }
+    // الآن نرسم النص في الأسفل
+    const bottomY = H - 30; // المسافة من الأسفل
     ctx.shadowBlur = 16;
     ctx.shadowColor = gold + '90';
-    ctx.font = `bold 38px "Cairo","Tahoma",sans-serif`; // حجم خط مناسب للأسفل
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillStyle = gold;
-    // نرسم النص في الأسفل مع مسافة من الحافة
-    const bottomY = H - 30; // المسافة من الأسفل
     ctx.fillText(newsText, W / 2, bottomY);
     ctx.shadowBlur = 0;
     ctx.strokeStyle = gold;
     ctx.lineWidth = 2;
     ctx.strokeText(newsText, W / 2, bottomY);
 
-    // خط زخرفي فوق النص (على بعد 6 بكسل فوق النص)
+    // خط زخرفي فوق النص
     const newsMetrics = ctx.measureText(newsText);
     const newsWidth = newsMetrics.width;
     const xStartNews = (W - newsWidth) / 2;
-    const yLineNews = bottomY - 38 - 6; // 38 هو ارتفاع النص تقريباً
+    const yLineNews = bottomY - fontSize - 6; // 6 بكسل فوق النص
     ctx.beginPath();
     ctx.moveTo(xStartNews, yLineNews);
     ctx.lineTo(xStartNews + newsWidth, yLineNews);
@@ -302,7 +309,7 @@ function drawFrame() {
     ctx.shadowBlur = 8;
     ctx.shadowColor = gold + '60';
     ctx.stroke();
-    // نقطة في نهاية الخط (يسار)
+    // نقطة في نهاية الخط
     ctx.beginPath();
     ctx.arc(xStartNews + newsWidth, yLineNews, 5, 0, Math.PI * 2);
     ctx.fillStyle = gold;
