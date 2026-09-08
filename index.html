@@ -58,7 +58,7 @@
       </div>
       <div class="ctrl-group">
         <label>📝 نص الخبر (يظهر أسفل الفيديو)</label>
-        <input type="text" id="newsTextInput" value="جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة" maxlength="150">
+        <input type="text" id="newsTextInput" value="جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية" maxlength="150">
       </div>
       <div class="ctrl-group">
         <label>🎨 لون النقش الفسفوري</label>
@@ -327,7 +327,7 @@ function drawFrame() {
   ctx.restore();
 
   // ----- نص الخبر في الأسفل (مصغر جداً) -----
-  const newsText = newsTextInput.value.trim() || 'جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة';
+  const newsText = newsTextInput.value.trim() || 'جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية';
   if (newsText) {
     const fontSizeNews = FONT_SIZE_NEWS;
     const maxWidth = W - 30;
