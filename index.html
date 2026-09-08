@@ -99,7 +99,7 @@
 <script>
 // ============================================================
 //  نظام تسجيل متطور – بدون تشويش (نسخة محسنة)
-//  مع إضافة نص الخبر في أسفل الفيديو بحجم مناسب
+//  مع إضافة نص الخبر في أسفل الفيديو بنفس حجم اسم الصفحة
 // ============================================================
 
 const { FFmpeg } = FFmpegWASM;
@@ -196,7 +196,75 @@ let audioContext = null;        // سيتم استخدامه لالتقاط ال
 let audioDestination = null;
 let audioSource = null;
 
-// ----- دالة الرسم (تم إضافة نص الخبر في الأسفل بحجم متكيف) -----
+// ----- دالة مساعدة لتقسيم النص إلى سطرين حسب العرض -----
+function splitTextIntoLines(text, maxWidth, fontSize, fontFamily) {
+  if (!text) return [];
+  ctx.font = `bold ${fontSize}px "${fontFamily}","Tahoma",sans-serif`;
+  const words = text.split(' ');
+  if (words.length === 0) return [];
+  // نبدأ بسطر واحد
+  let lines = [];
+  let currentLine = words[0];
+  for (let i = 1; i < words.length; i++) {
+    const testLine = currentLine + ' ' + words[i];
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth) {
+      lines.push(currentLine);
+      currentLine = words[i];
+    } else {
+      currentLine = testLine;
+    }
+  }
+  lines.push(currentLine);
+  // إذا كان هناك أكثر من سطرين، ندمج الزائد في السطر الثاني (نأخذ نصف الكلمات أو نضغط)
+  if (lines.length > 2) {
+    // ندمج كل الكلمات في سطرين فقط: السطر الأول يأخذ نصف الكلمات، والثاني الباقي
+    const allWords = text.split(' ');
+    const mid = Math.floor(allWords.length / 2);
+    // نجعل السطر الأول من البداية إلى المنتصف، والثاني من المنتصف إلى النهاية
+    const line1 = allWords.slice(0, mid).join(' ');
+    const line2 = allWords.slice(mid).join(' ');
+    // إذا كان السطر الثاني فارغاً، نجعله سطراً واحداً
+    if (line2.trim() === '') {
+      return [line1];
+    }
+    // نتحقق من عرض السطرين ونعدل إذا تجاوزا العرض
+    // يمكننا تقليل حجم الخط، لكن المستخدم يريد حجم ثابت، لذا نضغط الكلمات في سطرين
+    // نعيد بناء السطرين بحيث لا يتجاوز كل منهما العرض
+    let finalLines = [];
+    let tempLine = '';
+    for (let i = 0; i < allWords.length; i++) {
+      const testLine = tempLine + (tempLine ? ' ' : '') + allWords[i];
+      if (ctx.measureText(testLine).width > maxWidth) {
+        if (finalLines.length < 2) {
+          finalLines.push(tempLine);
+          tempLine = allWords[i];
+        } else {
+          // إذا وصلنا للسطر الثالث، نضيف الكلمة للسطر الثاني حتى لو تجاوز
+          finalLines[1] += ' ' + allWords[i];
+        }
+      } else {
+        tempLine = testLine;
+      }
+    }
+    if (tempLine) {
+      if (finalLines.length < 2) finalLines.push(tempLine);
+      else finalLines[1] += ' ' + tempLine;
+    }
+    // إذا كان هناك سطران فقط نرجعها، وإلا نأخذ أول سطرين فقط
+    if (finalLines.length > 2) {
+      // ندمج الزائد في السطر الثاني
+      for (let i = 2; i < finalLines.length; i++) {
+        finalLines[1] += ' ' + finalLines[i];
+      }
+      finalLines = finalLines.slice(0, 2);
+    }
+    return finalLines;
+  }
+  return lines;
+}
+
+// ----- دالة الرسم (تم إضافة نص الخبر في الأسفل بحجم ثابت) -----
 function drawFrame() {
   const W = canvas.width, H = canvas.height;
   if (W === 0 || H === 0) return;
@@ -270,52 +338,68 @@ function drawFrame() {
   ctx.fill();
   ctx.restore();
 
-  // ----- نص الخبر في الأسفل (بحجم متكيف) -----
+  // ----- نص الخبر في الأسفل (بحجم ثابت 44px، مقسم إلى سطرين) -----
   const newsText = newsTextInput.value.trim() || 'جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة';
   if (newsText) {
-    // تعيين الحد الأقصى للعرض المسموح به (عرض الكانفاس ناقص 40 بكسل)
-    const maxWidth = W - 40;
-    // نبدأ بحجم خط كبير ونقلل حتى يتناسب
-    let fontSize = 44; // حجم ابتدائي
+    const fontSize = 44; // نفس حجم اسم الصفحة
+    const maxWidth = W - 40; // هامش 20 بكسل من كل جانب
+    const fontFamily = 'Cairo';
     ctx.save();
-    ctx.font = `bold ${fontSize}px "Cairo","Tahoma",sans-serif`;
-    while (ctx.measureText(newsText).width > maxWidth && fontSize > 16) {
-      fontSize -= 2;
-      ctx.font = `bold ${fontSize}px "Cairo","Tahoma",sans-serif`;
+    ctx.font = `bold ${fontSize}px "${fontFamily}","Tahoma",sans-serif`;
+    // تقسيم النص إلى سطرين
+    let lines = splitTextIntoLines(newsText, maxWidth, fontSize, fontFamily);
+    // إذا كان هناك سطر واحد فقط، نجعله في المنتصف
+    if (lines.length === 1) {
+      // نضيف سطراً فارغاً للتوازن
+      lines = [lines[0], ''];
     }
-    // الآن نرسم النص في الأسفل
-    const bottomY = H - 30; // المسافة من الأسفل
-    ctx.shadowBlur = 16;
-    ctx.shadowColor = gold + '90';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillStyle = gold;
-    ctx.fillText(newsText, W / 2, bottomY);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = gold;
-    ctx.lineWidth = 2;
-    ctx.strokeText(newsText, W / 2, bottomY);
+    // حساب ارتفاع النص الكلي
+    const lineHeight = fontSize * 1.3;
+    const totalHeight = lines.length * lineHeight;
+    // نرسم من الأسفل مع مسافة 30 بكسل
+    const bottomY = H - 30;
+    const startY = bottomY - totalHeight;
 
-    // خط زخرفي فوق النص
-    const newsMetrics = ctx.measureText(newsText);
-    const newsWidth = newsMetrics.width;
-    const xStartNews = (W - newsWidth) / 2;
-    const yLineNews = bottomY - fontSize - 6; // 6 بكسل فوق النص
-    ctx.beginPath();
-    ctx.moveTo(xStartNews, yLineNews);
-    ctx.lineTo(xStartNews + newsWidth, yLineNews);
-    ctx.strokeStyle = gold;
-    ctx.lineWidth = 3;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = gold + '60';
-    ctx.stroke();
-    // نقطة في نهاية الخط
-    ctx.beginPath();
-    ctx.arc(xStartNews + newsWidth, yLineNews, 5, 0, Math.PI * 2);
-    ctx.fillStyle = gold;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = gold + '80';
-    ctx.fill();
+    // رسم كل سطر
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line) continue;
+      const yPos = startY + i * lineHeight + fontSize; // baseline من الأسفل
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = gold + '90';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle = gold;
+      ctx.fillText(line, W / 2, yPos);
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = gold;
+      ctx.lineWidth = 2;
+      ctx.strokeText(line, W / 2, yPos);
+    }
+
+    // خط زخرفي فوق السطر الأول (فوق النص)
+    const firstLine = lines[0];
+    if (firstLine) {
+      ctx.font = `bold ${fontSize}px "${fontFamily}","Tahoma",sans-serif`;
+      const lineWidth = ctx.measureText(firstLine).width;
+      const xStartNews = (W - lineWidth) / 2;
+      const yLineNews = startY + fontSize * 0.2; // فوق النص بقليل
+      ctx.beginPath();
+      ctx.moveTo(xStartNews, yLineNews);
+      ctx.lineTo(xStartNews + lineWidth, yLineNews);
+      ctx.strokeStyle = gold;
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = gold + '60';
+      ctx.stroke();
+      // نقطة في نهاية الخط
+      ctx.beginPath();
+      ctx.arc(xStartNews + lineWidth, yLineNews, 5, 0, Math.PI * 2);
+      ctx.fillStyle = gold;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = gold + '80';
+      ctx.fill();
+    }
     ctx.restore();
   }
 
