@@ -1,162 +1,603 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة ERP | أج آجمار - أنظمة محاسبية ذكية للتجار</title>
-    <meta name="description" content="نظام محاسبي متكامل يعمل بدون إنترنت. قيد مزدوج، تتبع الدُفعات، توزيع التكاليف. يدعم العربية، الفرنسية، البرتغالية، والإنجليزية. جاهز للتجار في موريتانيا وغرب أفريقيا.">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; color: #333; line-height: 1.6; direction: rtl; }
-        .container { max-width: 900px; margin: auto; padding: 20px; }
-
-        /* Header */
-        .header { background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #D4AF37 100%); color: white; padding: 30px 20px; border-radius: 16px; text-align: center; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(26,35,126,0.2); }
-        .header h1 { font-size: 1.8rem; margin-bottom: 6px; }
-        .header .subtitle { opacity: 0.9; font-size: 0.9rem; margin-bottom: 12px; }
-        .badge-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .badge { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.3); }
-
-        /* Sections */
-        .section { background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-right: 4px solid #1a237e; }
-        .section h2 { color: #1a237e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; font-size: 1.2rem; }
-        .section h2 i { color: #D4AF37; }
-        .section p { color: #555; margin-bottom: 12px; font-size: 0.9rem; line-height: 1.7; }
-
-        /* App Cards */
-        .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 16px; }
-        .app-card { background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; transition: all 0.3s; text-align: center; }
-        .app-card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); border-color: #D4AF37; }
-        .app-card h3 { color: #1a237e; font-size: 1rem; margin-bottom: 6px; }
-        .app-card .lang-tag { display: inline-block; background: #1a237e; color: #D4AF37; padding: 2px 10px; border-radius: 10px; font-size: 0.7rem; margin-bottom: 8px; }
-        .btn { display: inline-block; text-decoration: none; background: #1a237e; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; margin-top: 8px; transition: all 0.3s; border: none; cursor: pointer; }
-        .btn:hover { background: #0d1542; }
-        .btn-gold { background: #D4AF37; color: #1a1a1a; }
-        .btn-gold:hover { background: #c9a032; }
-
-        /* Features Grid */
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
-        .feature-item { background: #f0f4ff; padding: 14px; border-radius: 8px; font-size: 0.8rem; text-align: center; }
-        .feature-item strong { display: block; color: #1a237e; margin-bottom: 4px; }
-
-        /* Certification */
-        .cert-box { background: #fff8e1; border: 2px solid #D4AF37; padding: 16px; border-radius: 10px; text-align: center; margin-top: 12px; }
-        .cert-box .cert-title { font-weight: bold; color: #e65100; font-size: 0.9rem; }
-
-        /* Contact */
-        .contact-links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; }
-
-        footer { text-align: center; color: #777; font-size: 0.75rem; margin-top: 30px; padding: 16px; border-top: 1px solid #eee; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تحرير الفيديو – منصة أغورط (نسخة محسنة)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #021533; font-family: 'Cairo', sans-serif; padding: 25px 15px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; color: #e0e9f5; }
+    .app-wrapper { max-width: 1350px; width: 100%; }
+    .container { background: #0f1f33; border-radius: 36px; padding: 25px; box-shadow: 0 25px 55px rgba(0,0,0,0.6); border: 1px solid #2a4060; display: flex; flex-wrap: wrap; gap: 24px; }
+    .controls { flex: 1; min-width: 280px; background: #0b1a2e; border-radius: 26px; padding: 22px; border: 1px solid #2e4a6a; max-height: 88vh; overflow-y: auto; }
+    .controls h2 { color: #00FF00; font-size: 1.6rem; margin-bottom: 18px; border-bottom: 2px solid #00FF0040; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+    .ctrl-group { margin-bottom: 14px; }
+    .ctrl-group label { display: block; font-weight: 600; font-size: 0.85rem; color: #b8d0e8; margin-bottom: 5px; }
+    .ctrl-group input, .ctrl-group select { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid #2e4a6a; background: #0b1a2a; color: #fff; font-size: 0.9rem; font-family: 'Cairo', sans-serif; transition: 0.2s; outline: none; }
+    .ctrl-group input:focus { border-color: #00FF00; box-shadow: 0 0 0 3px rgba(0,255,0,0.15); }
+    .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .btn-group button { flex: 1; min-width: 85px; padding: 13px 18px; border: none; border-radius: 40px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.25s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Cairo', sans-serif; }
+    .btn-record { background: #00FF00; color: #021533; }
+    .btn-record:hover { background: #00cc00; transform: scale(1.02); }
+    .btn-stop { background: #ff4757; color: white; }
+    .btn-stop:hover { background: #e84118; }
+    .btn-download { background: #2e7d32; color: white; }
+    .btn-download:hover { background: #1b5e20; }
+    .btn-download:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status { background: rgba(0,255,0,0.08); border: 1px solid #00FF0050; padding: 10px; border-radius: 20px; margin-top: 12px; font-size: 0.85rem; text-align: center; color: #00FF00; }
+    .status.recording { background: rgba(255,71,87,0.1); border-color: #ff475780; color: #ff4757; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    .preview { flex: 1.8; min-width: 360px; background: #0b1a2a; border-radius: 26px; padding: 18px; border: 1px solid #2e4a6a; display: flex; flex-direction: column; align-items: center; }
+    .preview h3 { color: #00FF00; margin-bottom: 12px; }
+    .canvas-wrapper { width: 100%; display: flex; justify-content: center; }
+    #videoCanvas { width: 100%; max-width: 100%; height: auto; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 2px solid #2a4060; background: black; aspect-ratio: auto; }
+    .video-controls { display: flex; align-items: center; gap: 12px; margin-top: 12px; width: 100%; max-width: 700px; flex-wrap: wrap; justify-content: center; }
+    .video-controls button { background: #1a2f3f; border: 1px solid #2e4a6a; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+    .video-controls button:hover { background: #00FF0030; border-color: #00FF00; }
+    .video-controls input[type="range"] { flex: 1; min-width: 100px; accent-color: #00FF00; }
+    .time { color: #b8d0e8; font-size: 0.9rem; min-width: 90px; text-align: center; }
+    .hint { color: #7a9bbf; font-size: 0.8rem; margin-top: 10px; }
+    @media (max-width: 850px) { .container { flex-direction: column; } .controls { max-height: none; } }
+  </style>
 </head>
 <body>
-    <div class="container">
-
-        <!-- Header -->
-        <div class="header">
-            <h1>🔮 منصة ERP لإدارة التجارة</h1>
-            <p class="subtitle">نظام محاسبي متكامل بقيد مزدوج | يعمل بدون إنترنت | يدعم 4 لغات</p>
-            <div class="badge-row">
-                <span class="badge">🇲🇷 موريتانيا</span>
-                <span class="badge">🇸🇳 السنغال</span>
-                <span class="badge">🇬🇼 غينيا بيساو</span>
-                <span class="badge">🇬🇲 غامبيا</span>
-                <span class="badge">🌍 غرب أفريقيا</span>
-            </div>
-        </div>
-
-        <!-- About Section -->
-        <div class="section">
-            <h2><i>👨‍💻</i> من أنا</h2>
-            <p>
-                السلام عليكم، أنا <strong>أج آجمار</strong>، محاسب ومطور أنظمة ERP. 
-                طورت نظاماً محاسبياً متكاملاً يعمل بدون إنترنت، صممته خصيصاً للتجار في موريتانيا وغرب أفريقيا.
-                هذا النظام ليس مجرد برنامج، بل هو نتيجة أشهر من التدقيق والفحص الدقيق لضمان <strong>دقة محاسبية 100%</strong>.
-                كل تقاريري المالية (ميزان المراجعة، قائمة الدخل، الميزانية العمومية) متوازنة وتعمل بقيد مزدوج كامل.
-            </p>
-        </div>
-
-        <!-- What is ERP -->
-        <div class="section">
-            <h2><i>🧠</i> ما هو نظام ERP هذا؟</h2>
-            <p>
-                نظام <strong>تخطيط موارد المؤسسات (ERP)</strong> الذي طورته هو أداة محاسبية شاملة تسمح للتاجر بـ:
-            </p>
-            <div class="features">
-                <div class="feature-item"><strong>📦 تتبع الدُفعات</strong>كل عملية شراء تُنشئ دفعة مستقلة بتكلفتها الخاصة.</div>
-                <div class="feature-item"><strong>💰 توزيع التكاليف</strong>توزيع تلقائي للتكاليف العامة على الدُفعات حسب القيمة.</div>
-                <div class="feature-item"><strong>📊 تقارير مالية</strong>أستاذ عام، ميزان مراجعة، قائمة دخل، وميزانية عمومية.</div>
-                <div class="feature-item"><strong>🔒 لا يمكن الحذف</strong>سجل تدقيق كامل. لا يمكن حذف أي عملية بعد تسجيلها.</div>
-                <div class="feature-item"><strong>📱 يعمل بدون إنترنت</strong>PWA يُثبت على الهاتف ويعمل في أي مكان.</div>
-                <div class="feature-item"><strong>🌍 4 لغات</strong>العربية، الفرنسية، البرتغالية، والإنجليزية.</div>
-            </div>
-        </div>
-
-        <!-- Apps Section -->
-        <div class="section">
-            <h2><i>📲</i> التطبيقات المتاحة</h2>
-            <p>اختر النسخة المناسبة لتجارتك. كل نسخة مستقلة وتعمل بدون إنترنت.</p>
-            <div class="app-grid">
-                <div class="app-card">
-                    <span class="lang-tag">العربية | MRU</span>
-                    <h3>🇲🇷 موريتانيا - الأوقية</h3>
-                    <p style="font-size:0.8rem;color:#666;">للتجار الموريتانيين بالأوقية</p>
-                    <a href="https://www.appcreator24.com/app3888549-z2y0pt" target="_blank" class="btn">📥 فتح التطبيق</a>
-                </div>
-                <div class="app-card">
-                    <span class="lang-tag">العربية | XOF</span>
-                    <h3>🇸🇳 غرب أفريقيا - فرنك سيفا</h3>
-                    <p style="font-size:0.8rem;color:#666;">للتجار العرب بالفرنك الغرب أفريقي</p>
-                    <a href="https://www.appcreator24.com/app4077302-8ft4q0" target="_blank" class="btn">📥 فتح التطبيق</a>
-                </div>
-                <div class="app-card">
-                    <span class="lang-tag">Français | XOF</span>
-                    <h3>🇫🇷 Version Française</h3>
-                    <p style="font-size:0.8rem;color:#666;">Pour les commerçants au Sénégal, Mali, Guinée...</p>
-                    <a href="https://www.appcreator24.com/app4079761-t1jy29" target="_blank" class="btn">📥 Ouvrir</a>
-                </div>
-                <div class="app-card">
-                    <span class="lang-tag">Português | XOF</span>
-                    <h3>🇬🇼 Versão Portuguesa</h3>
-                    <p style="font-size:0.8rem;color:#666;">Para comerciantes na Guiné-Bissau</p>
-                    <a href="https://www.appcreator24.com/app4079809-j6ufbe" target="_blank" class="btn">📥 Abrir</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Certification -->
-        <div class="section">
-            <h2><i>✅</i> تدقيق واعتماد</h2>
-            <div class="cert-box">
-                <p class="cert-title">🏆 شهادة اعتماد وتدقيق</p>
-                <p style="font-size:0.85rem;color:#555;">
-                    تم تدقيق هذا النظام بواسطة خبراء أنظمة مالية. جميع التقارير متوازنة:
-                    <strong>ميزان المراجعة متوازن</strong>، <strong>الميزانية العمومية متوازنة</strong>،
-                    <strong>قائمة الدخل دقيقة</strong>. القيد المزدوج يعمل بنسبة 100%.
-                    النظام يطبق المعيار المحاسبي الدولي IAS 2 في تقييم المخزون.
-                </p>
-                <p style="font-size:0.7rem;color:#888;margin-top:8px;">
-                    شهادة رقمية: DEEPSEEK-FIN-ERP-2026-0603-0001
-                </p>
-            </div>
-        </div>
-
-        <!-- Contact -->
-        <div class="section">
-            <h2><i>📞</i> تواصل معي</h2>
-            <p style="text-align:center;">للاستفسار، التدريب، أو طلب نسخة مخصصة:</p>
-            <div class="contact-links">
-                <a href="https://wa.me/22226361821" target="_blank" class="btn btn-gold">📱 واتساب: 26361821</a>
-                <a href="https://wa.me/22243162663" target="_blank" class="btn btn-gold">📱 واتساب: 43162663</a>
-                <a href="mailto:ajeajmar66@gmail.com" class="btn">📧 ajeajmar66@gmail.com</a>
-            </div>
-        </div>
-
-        <footer>
-            © 2024 جميع الحقوق محفوظة – أج آجمار | ERP Systems Developer<br>
-            جميع التطبيقات تعمل محلياً بدون إنترنت | PWA | Double Entry Accounting
-        </footer>
-
+<div class="app-wrapper">
+  <div class="container">
+    <div class="controls">
+      <h2><i class="fas fa-video"></i> تحرير الفيديو – نسخة محسنة</h2>
+      <div class="ctrl-group">
+        <label>📹 رفع فيديو</label>
+        <input type="file" id="videoUpload" accept="video/*">
+      </div>
+      <div class="ctrl-group">
+        <label>✏️ اسم الصفحة (يظهر أعلى الفيديو)</label>
+        <input type="text" id="pageNameInput" value="منصة أغورط الإخبارية" maxlength="40">
+      </div>
+      <div class="ctrl-group">
+        <label>📝 نص الخبر (يظهر أسفل الفيديو)</label>
+        <input type="text" id="newsTextInput" value="جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة" maxlength="100">
+      </div>
+      <div class="ctrl-group">
+        <label>🎨 لون النقش الفسفوري</label>
+        <input type="color" id="goldColor" value="#00FF00">
+      </div>
+      <!-- شريط تحكم بجودة التسجيل (اختياري) -->
+      <div class="ctrl-group">
+        <label>⚙️ جودة التسجيل</label>
+        <select id="qualitySelect">
+          <option value="high" selected>عالية (8 ميجابت)</option>
+          <option value="medium">متوسطة (5 ميجابت)</option>
+          <option value="low">منخفضة (3 ميجابت)</option>
+        </select>
+      </div>
+      <div class="btn-group">
+        <button class="btn-record" id="btnRecord"><i class="fas fa-record-vinyl"></i> تسجيل</button>
+        <button class="btn-stop" id="btnStop" disabled><i class="fas fa-stop-circle"></i> إيقاف</button>
+        <button class="btn-download" id="btnDownload" disabled><i class="fas fa-download"></i> تحميل MP4</button>
+      </div>
+      <div id="statusBadge" class="status"><i class="fas fa-check-circle"></i> جاهز – ⏳ محول MP4 قيد التحميل...</div>
     </div>
+    <div class="preview">
+      <h3><i class="fas fa-eye"></i> المعاينة</h3>
+      <div class="canvas-wrapper"><canvas id="videoCanvas"></canvas></div>
+      <div class="video-controls">
+        <button id="btnPlayPause"><i class="fas fa-play"></i></button>
+        <button id="btnRestart"><i class="fas fa-redo-alt"></i></button>
+        <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1">
+        <span class="time" id="timeDisplay">00:00 / 00:00</span>
+        <button id="btnMute"><i class="fas fa-volume-up"></i></button>
+        <button id="btnFullscreen" title="معاينة كاملة"><i class="fas fa-expand"></i></button>
+      </div>
+      <div class="hint"><i class="fas fa-info-circle"></i> جودة عالية – تم تحسين كل من الصوت والفيديو لتجنب التشويش والتقطيع.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  نظام تسجيل متطور – بدون تشويش (نسخة محسنة)
+//  مع إضافة نص الخبر في أسفل الفيديو بنفس تصميم الاسم
+// ============================================================
+
+const { FFmpeg } = FFmpegWASM;
+
+let ffmpegReady = false, ffmpegInstance = null, ffmpegLoading = false;
+
+async function prepareFFmpeg() {
+  if (ffmpegReady && ffmpegInstance) return ffmpegInstance;
+  if (ffmpegLoading) {
+    return new Promise((resolve) => {
+      const check = setInterval(() => {
+        if (ffmpegReady) { clearInterval(check); resolve(ffmpegInstance); }
+      }, 300);
+    });
+  }
+  ffmpegLoading = true;
+  try {
+    const ffmpeg = new FFmpeg();
+    await ffmpeg.load();
+    ffmpegInstance = ffmpeg;
+    ffmpegReady = true;
+    document.getElementById('statusBadge').innerHTML = '<i class="fas fa-check-circle"></i> ✅ محول MP4 جاهز';
+    return ffmpeg;
+  } catch (e) {
+    console.error('فشل تحميل FFmpeg:', e);
+    ffmpegReady = false;
+    document.getElementById('statusBadge').innerHTML = '<i class="fas fa-exclamation-triangle"></i> ⚠️ تعذر تحميل محول MP4';
+    throw e;
+  } finally {
+    ffmpegLoading = false;
+  }
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => prepareFFmpeg().catch(() => {}), 500);
+});
+
+// تحويل WebM إلى MP4 مع إعدادات محسنة (جودة عالية)
+async function convertWebMToMP4(webmBlob) {
+  const ffmpeg = await prepareFFmpeg();
+  const inputBytes = new Uint8Array(await webmBlob.arrayBuffer());
+  await ffmpeg.writeFile('input.webm', inputBytes);
+  await ffmpeg.exec([
+    '-i', 'input.webm',
+    // حذف -r و -vsync و -async لتجنب مشاكل التزامن
+    '-c:v', 'libx264',
+    '-profile:v', 'high',
+    '-level', '4.0',
+    '-pix_fmt', 'yuv420p',
+    '-movflags', '+faststart',
+    '-preset', 'slow',        // تحسين الجودة على حساب السرعة (يمكن تغييره إلى medium)
+    '-crf', '17',             // جودة أعلى (أقل قيمة = جودة أعلى)
+    '-b:v', '4M',             // معدل بت أعلى
+    '-maxrate', '8M',
+    '-bufsize', '16M',
+    '-c:a', 'aac',
+    '-b:a', '192k',           // زيادة جودة الصوت
+    '-ac', '2',
+    'output.mp4'
+  ]);
+  const outputData = await ffmpeg.readFile('output.mp4');
+  return new Blob([outputData], { type: 'video/mp4' });
+}
+
+// ----- عناصر الواجهة -----
+const canvas = document.getElementById('videoCanvas');
+const ctx = canvas.getContext('2d');
+const video = document.createElement('video');
+video.crossOrigin = 'anonymous';
+video.playsInline = true;
+video.preload = 'auto';
+
+const videoUpload = document.getElementById('videoUpload');
+const pageNameInput = document.getElementById('pageNameInput');
+const newsTextInput = document.getElementById('newsTextInput');
+const goldColorInp = document.getElementById('goldColor');
+const qualitySelect = document.getElementById('qualitySelect');
+const btnRecord = document.getElementById('btnRecord');
+const btnStop = document.getElementById('btnStop');
+const btnDownload = document.getElementById('btnDownload');
+const statusBadge = document.getElementById('statusBadge');
+const btnPlayPause = document.getElementById('btnPlayPause');
+const btnRestart = document.getElementById('btnRestart');
+const progressBar = document.getElementById('progressBar');
+const timeDisplay = document.getElementById('timeDisplay');
+const btnMute = document.getElementById('btnMute');
+const btnFullscreen = document.getElementById('btnFullscreen');
+
+let videoLoaded = false, isPlaying = false, isRecording = false;
+let mediaRecorder = null, recordedChunks = [];
+let animFrame = null;
+let canvasStream = null;
+let audioContext = null;        // سيتم استخدامه لالتقاط الصوت بشكل مستقر
+let audioDestination = null;
+let audioSource = null;
+
+// ----- دالة الرسم (تم إضافة نص الخبر في الأسفل) -----
+function drawFrame() {
+  const W = canvas.width, H = canvas.height;
+  if (W === 0 || H === 0) return;
+  ctx.clearRect(0, 0, W, H);
+
+  // رسم الفيديو
+  if (videoLoaded && video.readyState >= 2 && video.videoWidth) {
+    const vidAspect = video.videoWidth / video.videoHeight;
+    const canvasAspect = W / H;
+    let drawW, drawH, dx, dy;
+    if (vidAspect > canvasAspect) {
+      drawW = W;
+      drawH = W / vidAspect;
+      dx = 0;
+      dy = (H - drawH) / 2;
+    } else {
+      drawH = H;
+      drawW = H * vidAspect;
+      dx = (W - drawW) / 2;
+      dy = 0;
+    }
+    ctx.drawImage(video, dx, dy, drawW, drawH);
+  } else {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#5a7a9a';
+    let fs = Math.min(14, W * 0.025);
+    ctx.font = `${fs}px "Cairo"`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('📹 ارفع فيديو', W / 2, H / 2);
+  }
+
+  const gold = goldColorInp.value || '#00FF00';
+
+  // ----- اسم الصفحة في الأعلى (كما هو) -----
+  const pageName = pageNameInput.value.trim() || 'منصة أغورط الإخبارية';
+  const fullText = '👤 ' + pageName;
+
+  ctx.save();
+  ctx.shadowBlur = 16;
+  ctx.shadowColor = gold + '90';
+  ctx.font = `bold 44px "Cairo","Tahoma",sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = gold;
+  ctx.fillText(fullText, W / 2, 22);
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 2;
+  ctx.strokeText(fullText, W / 2, 22);
+
+  // خط زخرفي تحت الاسم
+  const metrics = ctx.measureText(fullText);
+  const textWidth = metrics.width;
+  const xStart = (W - textWidth) / 2;
+  const yLine = 22 + 44 + 6;
+  ctx.beginPath();
+  ctx.moveTo(xStart, yLine);
+  ctx.lineTo(xStart + textWidth, yLine);
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 3;
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = gold + '60';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(xStart + textWidth, yLine, 5, 0, Math.PI * 2);
+  ctx.fillStyle = gold;
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = gold + '80';
+  ctx.fill();
+  ctx.restore();
+
+  // ----- نص الخبر في الأسفل (نفس التصميم) -----
+  const newsText = newsTextInput.value.trim() || 'جماهير نواكشوط في استقبال ولد عبد العزيز بعد منعه من دخول ولاية اترارزة';
+  if (newsText) {
+    // نحتاج لقياس النص لرسم الخط والنقطة
+    ctx.save();
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = gold + '90';
+    ctx.font = `bold 38px "Cairo","Tahoma",sans-serif`; // حجم خط مناسب للأسفل
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = gold;
+    // نرسم النص في الأسفل مع مسافة من الحافة
+    const bottomY = H - 30; // المسافة من الأسفل
+    ctx.fillText(newsText, W / 2, bottomY);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = gold;
+    ctx.lineWidth = 2;
+    ctx.strokeText(newsText, W / 2, bottomY);
+
+    // خط زخرفي فوق النص (على بعد 6 بكسل فوق النص)
+    const newsMetrics = ctx.measureText(newsText);
+    const newsWidth = newsMetrics.width;
+    const xStartNews = (W - newsWidth) / 2;
+    const yLineNews = bottomY - 38 - 6; // 38 هو ارتفاع النص تقريباً
+    ctx.beginPath();
+    ctx.moveTo(xStartNews, yLineNews);
+    ctx.lineTo(xStartNews + newsWidth, yLineNews);
+    ctx.strokeStyle = gold;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = gold + '60';
+    ctx.stroke();
+    // نقطة في نهاية الخط (يسار)
+    ctx.beginPath();
+    ctx.arc(xStartNews + newsWidth, yLineNews, 5, 0, Math.PI * 2);
+    ctx.fillStyle = gold;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = gold + '80';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // تحديث شريط التقدم (خارج الكانفاس)
+  if (videoLoaded && video.duration) {
+    const pct = (video.currentTime / video.duration) * 100;
+    if (!isNaN(pct) && document.activeElement !== progressBar) progressBar.value = pct;
+    timeDisplay.textContent = `${fmtTime(video.currentTime)} / ${fmtTime(video.duration)}`;
+  } else if (!videoLoaded) {
+    timeDisplay.textContent = '00:00 / 00:00';
+    progressBar.value = 0;
+  }
+}
+
+function fmtTime(s) {
+  if (isNaN(s)) return '00:00';
+  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function startLoop() {
+  if (animFrame) cancelAnimationFrame(animFrame);
+  (function loop() {
+    drawFrame();
+    if (isPlaying || isRecording) animFrame = requestAnimationFrame(loop);
+  })();
+}
+function stopLoop() {
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+  drawFrame();
+}
+
+function play() {
+  if (!videoLoaded) return;
+  video.play().then(() => {
+    isPlaying = true;
+    btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
+    startLoop();
+  }).catch(() => { isPlaying = false; });
+}
+function pause() {
+  video.pause();
+  isPlaying = false;
+  btnPlayPause.innerHTML = '<i class="fas fa-play"></i>';
+  stopLoop();
+}
+btnPlayPause.onclick = () => isPlaying ? pause() : play();
+btnRestart.onclick = () => {
+  if (videoLoaded) {
+    video.currentTime = 0;
+    if (!isPlaying) drawFrame();
+  }
+};
+progressBar.oninput = () => {
+  if (videoLoaded && !isRecording) {
+    video.currentTime = (progressBar.value / 100) * video.duration;
+    drawFrame();
+  }
+};
+btnMute.onclick = () => {
+  video.muted = !video.muted;
+  btnMute.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+};
+video.onended = () => { if (isRecording) stopRecording(); else pause(); };
+btnFullscreen.onclick = () => {
+  if (canvas.requestFullscreen) canvas.requestFullscreen().catch(() => {});
+  else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
+};
+
+videoUpload.onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (isRecording) stopRecording(true);
+  pause();
+  video.src = URL.createObjectURL(file);
+  video.load();
+  videoLoaded = false;
+  statusBadge.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري التحميل...';
+  statusBadge.className = 'status';
+  video.onloadedmetadata = () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    videoLoaded = true;
+    video.currentTime = 0;
+    statusBadge.innerHTML = '<i class="fas fa-check-circle"></i> الفيديو جاهز';
+    statusBadge.className = 'status';
+    drawFrame();
+  };
+  video.onerror = () => {
+    videoLoaded = false;
+    statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> خطأ في الفيديو';
+    statusBadge.className = 'status';
+  };
+};
+
+// ----- وظيفة محسنة للحصول على الصوت باستخدام AudioContext (أكثر استقراراً) -----
+function setupAudioContext() {
+  if (audioContext) return audioContext;
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // إنشاء وجهة للتيار الصوتي
+    audioDestination = audioContext.createMediaStreamDestination();
+    // ربط مصدر الفيديو بالسياق
+    audioSource = audioContext.createMediaElementSource(video);
+    audioSource.connect(audioDestination);
+    // لا نربط بمخارج السماعات لتجنب الصدى، لكن يمكن تركه
+    audioSource.connect(audioContext.destination);
+    return audioContext;
+  } catch (e) {
+    console.error('فشل إنشاء AudioContext للصوت:', e);
+    return null;
+  }
+}
+
+// ----- إعداد المسجل مع عزل الصوت (محسّن) -----
+function setupRecorder() {
+  if (!videoLoaded) {
+    statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ارفع فيديو أولاً';
+    statusBadge.className = 'status recording';
+    setTimeout(() => {
+      if (statusBadge.className === 'status recording') {
+        statusBadge.innerHTML = '<i class="fas fa-check-circle"></i> جاهز';
+        statusBadge.className = 'status';
+      }
+    }, 3000);
+    return null;
+  }
+
+  // تدفق الفيديو من canvas (معدل 30 إطار)
+  canvasStream = canvas.captureStream(30);
+
+  // الحصول على تدفق الصوت النظيف عبر AudioContext (طريقة أكثر استقراراً)
+  let audioStream = null;
+  const ctx = setupAudioContext();
+  if (ctx && audioDestination) {
+    audioStream = audioDestination.stream;
+    // إذا كان السياق معلقاً، نشغله
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(e => console.warn('تعذر استئناف AudioContext', e));
+    }
+  } else {
+    // fallback إلى captureStream المباشر
+    try {
+      const fallback = video.captureStream();
+      const audioTracks = fallback.getAudioTracks();
+      if (audioTracks.length > 0) {
+        audioStream = new MediaStream(audioTracks);
+      }
+    } catch (e) {}
+  }
+
+  // إذا لم نجد صوت، نستمر بدون صوت
+  if (!audioStream || audioStream.getAudioTracks().length === 0) {
+    console.warn('لا يوجد صوت متاح، التسجيل بدون صوت');
+    audioStream = null;
+  }
+
+  // دمج الفيديو والصوت
+  const tracks = canvasStream.getVideoTracks();
+  if (audioStream) {
+    tracks.push(...audioStream.getAudioTracks());
+  }
+  const combinedStream = new MediaStream(tracks);
+
+  // اختيار التنسيق مع جودة عالية
+  let mimeType = 'video/webm';
+  if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+    mimeType = 'video/webm;codecs=vp9';
+  } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+    mimeType = 'video/webm;codecs=vp8';
+  }
+
+  // تحديد معدل البت حسب اختيار المستخدم
+  let bitrate = 8000000; // افتراضي عالي
+  const quality = qualitySelect.value;
+  if (quality === 'medium') bitrate = 5000000;
+  else if (quality === 'low') bitrate = 3000000;
+
+  mediaRecorder = new MediaRecorder(combinedStream, {
+    mimeType: mimeType,
+    videoBitsPerSecond: bitrate,
+    audioBitsPerSecond: 256000
+  });
+
+  recordedChunks = [];
+  mediaRecorder.ondataavailable = e => {
+    if (e.data.size) recordedChunks.push(e.data);
+  };
+
+  mediaRecorder.onstop = async () => {
+    const webmBlob = new Blob(recordedChunks, { type: 'video/webm' });
+    statusBadge.innerHTML = '<i class="fas fa-cog fa-spin"></i> جاري تحويل إلى MP4...';
+    statusBadge.className = 'status';
+    try {
+      const mp4Blob = await convertWebMToMP4(webmBlob);
+      const url = URL.createObjectURL(mp4Blob);
+      btnDownload.disabled = false;
+      btnDownload.onclick = () => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'فيديو_أغورط_' + Date.now() + '.mp4';
+        a.click();
+      };
+      statusBadge.innerHTML = '<i class="fas fa-check-circle"></i> التسجيل اكتمل (MP4)';
+      statusBadge.className = 'status';
+    } catch (e) {
+      console.error(e);
+      const url = URL.createObjectURL(webmBlob);
+      btnDownload.disabled = false;
+      btnDownload.onclick = () => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'فيديو_أغورط_' + Date.now() + '.webm';
+        a.click();
+      };
+      statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> تعذر تحويل MP4. تم توفير WebM.';
+      statusBadge.className = 'status';
+    }
+  };
+
+  return mediaRecorder;
+}
+
+function startRecording() {
+  const rec = setupRecorder();
+  if (!rec) return;
+  video.currentTime = 0;
+  video.muted = false;
+  rec.start(1000); // جمع البيانات كل ثانية لتقليل الذاكرة
+  isRecording = true;
+  btnRecord.disabled = true;
+  btnStop.disabled = false;
+  btnDownload.disabled = true;
+  statusBadge.innerHTML = '<i class="fas fa-circle"></i> جاري التسجيل...';
+  statusBadge.className = 'status recording';
+
+  if (!isPlaying) {
+    video.play().then(() => {
+      isPlaying = true;
+      btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
+      startLoop();
+    }).catch(() => {});
+  } else {
+    startLoop();
+  }
+}
+
+function stopRecording(silent = false) {
+  if (!isRecording) return;
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+  isRecording = false;
+  btnRecord.disabled = false;
+  btnStop.disabled = true;
+  if (!silent) {
+    statusBadge.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> معالجة...';
+    statusBadge.className = 'status';
+  }
+  // إيقاف تشغيل الفيديو تلقائياً إذا لم يكن قيد التشغيل
+  if (isPlaying) pause();
+}
+
+btnRecord.onclick = startRecording;
+btnStop.onclick = () => stopRecording();
+
+// تحديث الرسم عند تغيير النصوص أو اللون
+pageNameInput.addEventListener('input', () => {
+  if (!isPlaying && !isRecording) drawFrame();
+});
+newsTextInput.addEventListener('input', () => {
+  if (!isPlaying && !isRecording) drawFrame();
+});
+goldColorInp.addEventListener('input', () => {
+  if (!isPlaying && !isRecording) drawFrame();
+});
+
+// ----- التهيئة -----
+canvas.width = 715;
+canvas.height = 408;
+drawFrame();
+
+// تحرير AudioContext عند بدء التشغيل (لتفادي قيود المتصفح)
+document.addEventListener('click', () => {
+  if (audioContext && audioContext.state === 'suspended') {
+    audioContext.resume().catch(e => console.warn('تعذر استئناف السياق الصوتي', e));
+  }
+}, { once: true });
+
+</script>
 </body>
 </html>
